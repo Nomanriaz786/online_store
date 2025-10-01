@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="192" viewBox="0 0 256 192" role="img" aria-label="Wireless Mouse">
+	<g transform="translate(64,24)">
+		<rect x="32" y="0" rx="24" ry="24" width="96" height="144" fill="#adb5bd"/>
+		<rect x="32" y="64" width="96" height="8" fill="#6c757d"/>
+	</g>
+</svg>

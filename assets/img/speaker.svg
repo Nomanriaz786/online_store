@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="192" viewBox="0 0 256 192" role="img" aria-label="Bluetooth Speaker">
+	<rect x="64" y="40" width="128" height="112" rx="8" fill="#e9ecef" stroke="#adb5bd"/>
+	<circle cx="112" cy="96" r="24" fill="#adb5bd"/>
+	<circle cx="160" cy="96" r="24" fill="#adb5bd"/>
+	</svg>

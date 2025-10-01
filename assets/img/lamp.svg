@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="192" viewBox="0 0 256 192" role="img" aria-label="Desk Lamp">
+	<g transform="translate(40,32)">
+		<rect x="0" y="128" width="176" height="12" fill="#212529"/>
+		<rect x="64" y="28" width="12" height="100" fill="#6c757d"/>
+		<rect x="76" y="28" width="56" height="12" fill="#6c757d"/>
+		<rect x="132" y="16" width="36" height="24" rx="6" fill="#ffc107"/>
+	</g>
+</svg>

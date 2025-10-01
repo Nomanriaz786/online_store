@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="192" viewBox="0 0 256 192" role="img" aria-label="Backpack">
+	<g transform="translate(64,24)" fill="#63e6be">
+		<rect x="32" y="0" width="64" height="24" rx="8"/>
+		<rect x="16" y="24" width="96" height="120" rx="16"/>
+	</g>
+</svg>
