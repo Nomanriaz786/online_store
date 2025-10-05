@@ -39,6 +39,14 @@ function renderProductsTable($products) {
                 <div class="btn-group btn-group-sm">
                     <button class="btn btn-primary edit-product" 
                             data-product-id="<?= $product['id'] ?>"
+                            data-product-name="<?= htmlspecialchars($product['name'] ?? '') ?>"
+                            data-product-price="<?= $product['price'] ?? 0 ?>"
+                            data-product-stock="<?= $product['stock_quantity'] ?? $product['stock'] ?? 0 ?>"
+                            data-product-category="<?= $product['category_id'] ?? '' ?>"
+                            data-product-description="<?= htmlspecialchars($product['description'] ?? '') ?>"
+                            data-product-sku="<?= htmlspecialchars($product['sku'] ?? '') ?>"
+                            data-product-image="<?= htmlspecialchars($imageUrl) ?>"
+                            data-product-active="<?= $product['is_active'] ? 1 : 0 ?>"
                             title="Edit Product">
                         <i class="bi bi-pencil"></i>
                     </button>
@@ -85,6 +93,9 @@ function renderCategoriesTable($categories) {
                 <div class="btn-group btn-group-sm">
                     <button class="btn btn-primary edit-category" 
                             data-category-id="<?= $category['id'] ?>"
+                            data-category-name="<?= htmlspecialchars($category['name'] ?? '') ?>"
+                            data-category-description="<?= htmlspecialchars($category['description'] ?? '') ?>"
+                            data-category-active="<?= $category['is_active'] ? 1 : 0 ?>"
                             title="Edit Category">
                         <i class="bi bi-pencil"></i>
                     </button>
@@ -146,6 +157,10 @@ function renderOrdersTable($orders) {
                 <div class="btn-group btn-group-sm">
                     <button class="btn btn-primary edit-order"
                             data-order-id="<?= $order['id'] ?>"
+                            data-order-number="<?= htmlspecialchars($order['order_number'] ?? '') ?>"
+                            data-order-status="<?= htmlspecialchars($status) ?>"
+                            data-order-customer="<?= htmlspecialchars($customerName) ?>"
+                            data-order-total="<?= $order['total_amount'] ?? 0 ?>"
                             title="Edit Order">
                         <i class="bi bi-pencil"></i>
                     </button>
@@ -199,6 +214,12 @@ function renderUsersTable($users) {
                 <div class="btn-group btn-group-sm">
                     <button class="btn btn-primary edit-user"
                             data-user-id="<?= $user['id'] ?>"
+                            data-user-username="<?= htmlspecialchars($user['username'] ?? '') ?>"
+                            data-user-email="<?= htmlspecialchars($user['email'] ?? '') ?>"
+                            data-user-firstname="<?= htmlspecialchars($user['first_name'] ?? '') ?>"
+                            data-user-lastname="<?= htmlspecialchars($user['last_name'] ?? '') ?>"
+                            data-user-role="<?= htmlspecialchars($role) ?>"
+                            data-user-active="<?= $user['is_active'] ? 1 : 0 ?>"
                             title="Edit User">
                         <i class="bi bi-pencil"></i>
                     </button>

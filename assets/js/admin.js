@@ -203,32 +203,26 @@
 
   // Products - now handled by server-side form submission
 
-  async function editProduct(id) {
+  function editProduct(button) {
     try {
-      const response = await fetch(`api/products/get.php?id=${encodeURIComponent(id)}`);
-      const data = await response.json();
-      
-      if (!data.success || !data.product) {
-        showAlert('Product not found.', 'warning');
-        return;
-      }
-      const p = data.product;
+      // Get data from button's data attributes
+      const dataset = button.dataset;
       
       const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('productModal'));
       modal.show();
       
       // Set values after modal is shown
       setTimeout(() => {
-        document.getElementById('productId').value = p.id;
-        document.getElementById('productName').value = p.name || '';
-        document.getElementById('productPrice').value = p.price ?? '';
-        document.getElementById('productCategory').value = p.category_id ?? '';
-        document.getElementById('productStock').value = p.stock_quantity ?? p.stock ?? 0;
-        document.getElementById('productSku').value = p.sku ?? '';
-        document.getElementById('productImageUrl').value = p.image_url || p.image_path || p.image || '';
-        document.getElementById('productDescription').value = p.description ?? '';
-        document.getElementById('productActive').checked = !!p.is_active;
-        document.getElementById('productFeatured').checked = !!p.is_featured;
+        document.getElementById('productId').value = dataset.productId || '';
+        document.getElementById('productName').value = dataset.productName || '';
+        document.getElementById('productPrice').value = dataset.productPrice || '';
+        document.getElementById('productCategory').value = dataset.productCategory || '';
+        document.getElementById('productStock').value = dataset.productStock || 0;
+        document.getElementById('productSku').value = dataset.productSku || '';
+        document.getElementById('productImageUrl').value = dataset.productImage || '';
+        document.getElementById('productDescription').value = dataset.productDescription || '';
+        document.getElementById('productActive').checked = dataset.productActive === '1';
+        document.getElementById('productFeatured').checked = false; // Default to false
         // Update action field for update
         const actionInput = document.getElementById('productAction');
         if (actionInput) actionInput.value = 'update_product';
@@ -245,24 +239,19 @@
   
   // Categories - now handled by server-side form submission
 
-  async function editCategory(id) {
+  function editCategory(button) {
     try {
-      const response = await fetch(`api/categories/get.php?id=${encodeURIComponent(id)}`);
-      const data = await response.json();
-      if (!data.success || !data.category) {
-        showAlert('Category not found.', 'warning');
-        return;
-      }
-      const c = data.category;
+      // Get data from button's data attributes
+      const dataset = button.dataset;
       
       const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryModal'));
       modal.show();
       
       setTimeout(() => {
-        document.getElementById('categoryId').value = c.id;
-        document.getElementById('categoryName').value = c.name || '';
-        document.getElementById('categoryDescription').value = c.description || '';
-        document.getElementById('categoryActive').checked = !!c.is_active;
+        document.getElementById('categoryId').value = dataset.categoryId || '';
+        document.getElementById('categoryName').value = dataset.categoryName || '';
+        document.getElementById('categoryDescription').value = dataset.categoryDescription || '';
+        document.getElementById('categoryActive').checked = dataset.categoryActive === '1';
         // Update action field for update
         const actionInput = document.getElementById('categoryAction');
         if (actionInput) actionInput.value = 'update_category';
@@ -279,18 +268,19 @@
   
   // Orders - now handled by server-side form submission
 
-  async function editOrder(id) {
+  function editOrder(button) {
     try {
-      const response = await fetch(`api/orders/get.php?id=${encodeURIComponent(id)}`);
-      const data = await response.json();
-      if (!data || !data.success || !data.order) {
-        showAlert('Order not found.', 'warning');
-        return;
+      // Get data from button's data attributes
+      const dataset = button.dataset;
+      
+      document.getElementById('orderId').value = dataset.orderId || '';
+      document.getElementById('orderStatus').value = dataset.orderStatus || 'pending';
+      
+      const notesField = document.getElementById('orderNotes');
+      if (notesField) {
+        notesField.value = '';
       }
-      const o = data.order;
-      document.getElementById('orderId').value = o.id;
-      document.getElementById('orderStatus').value = o.status || 'pending';
-      document.getElementById('orderNotes').value = o.notes || '';
+      
       bootstrap.Modal.getOrCreateInstance(document.getElementById('orderModal')).show();
     } catch (err) {
       console.error('Error editing order:', err);
@@ -302,31 +292,26 @@
   
   // Users - now handled by server-side form submission
 
-  async function editUser(id) {
+  function editUser(button) {
     try {
-      const response = await fetch(`api/users/get.php?id=${encodeURIComponent(id)}`);
-      const data = await response.json();
-      if (!data.success || !data.user) {
-        showAlert('User not found.', 'warning');
-        return;
-      }
-      const u = data.user;
+      // Get data from button's data attributes
+      const dataset = button.dataset;
       
       const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('userModal'));
       modal.show();
       
       setTimeout(() => {
-        document.getElementById('userId').value = u.id;
-        document.getElementById('userUsername').value = u.username || '';
-        document.getElementById('userEmail').value = u.email || '';
+        document.getElementById('userId').value = dataset.userId || '';
+        document.getElementById('userUsername').value = dataset.userUsername || '';
+        document.getElementById('userEmail').value = dataset.userEmail || '';
         
         // Combine first_name and last_name into name field
-        const fullName = [u.first_name || '', u.last_name || ''].filter(n => n.trim()).join(' ');
+        const fullName = [dataset.userFirstname || '', dataset.userLastname || ''].filter(n => n.trim()).join(' ');
         document.getElementById('userName').value = fullName;
         
-        document.getElementById('userRole').value = u.role || 'user';
+        document.getElementById('userRole').value = dataset.userRole || 'user';
         document.getElementById('userPassword').value = '';
-        document.getElementById('userActive').checked = !!u.is_active;
+        document.getElementById('userActive').checked = dataset.userActive === '1';
         // Update action field for update
         const actionInput = document.getElementById('userAction');
         if (actionInput) actionInput.value = 'update_user';
@@ -339,10 +324,6 @@
     }
   }
 
-  // Delete functionality now handled by server-side forms
-  
-  // Form clearing functions
-
   // Initialization
   document.addEventListener('DOMContentLoaded', function() {
     // Event delegation for edit actions only (delete is handled by forms)
@@ -352,19 +333,19 @@
       
       // Product actions
       if (target.classList.contains('edit-product')) {
-        editProduct(target.dataset.productId);
+        editProduct(target);
       }
       // Category actions
       else if (target.classList.contains('edit-category')) {
-        editCategory(target.dataset.categoryId);
+        editCategory(target);
       }
       // Order actions
       else if (target.classList.contains('edit-order')) {
-        editOrder(target.dataset.orderId);
+        editOrder(target);
       }
       // User actions
       else if (target.classList.contains('edit-user')) {
-        editUser(target.dataset.userId);
+        editUser(target);
       }
     });
 
@@ -397,7 +378,6 @@
     }
   });
 
-  // Expose API (only edit and clear functions - save/delete handled by server-side forms)
   window.Admin = {
     editProduct,
     editCategory,
