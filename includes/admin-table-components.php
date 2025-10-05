@@ -42,11 +42,15 @@ function renderProductsTable($products) {
                             title="Edit Product">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    <button class="btn btn-danger delete-product" 
-                            data-product-id="<?= $product['id'] ?>"
-                            title="Delete Product">
-                        <i class="bi bi-trash"></i>
-                    </button>
+                    <form method="POST" action="admin.php" style="display: inline;" 
+                          onsubmit="return confirm('Are you sure you want to delete this product?');">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+                        <input type="hidden" name="action" value="delete_product">
+                        <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                        <button type="submit" class="btn btn-danger btn-sm" title="Delete Product">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
                 </div>
             </td>
         </tr>
@@ -84,11 +88,15 @@ function renderCategoriesTable($categories) {
                             title="Edit Category">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    <button class="btn btn-danger delete-category" 
-                            data-category-id="<?= $category['id'] ?>"
-                            title="Delete Category">
-                        <i class="bi bi-trash"></i>
-                    </button>
+                    <form method="POST" action="admin.php" style="display: inline;" 
+                          onsubmit="return confirm('Are you sure you want to delete this category?');">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+                        <input type="hidden" name="action" value="delete_category">
+                        <input type="hidden" name="category_id" value="<?= $category['id'] ?>">
+                        <button type="submit" class="btn btn-danger btn-sm" title="Delete Category">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
                 </div>
             </td>
         </tr>
@@ -136,16 +144,20 @@ function renderOrdersTable($orders) {
             <td class="order-date"><?= $createdAt ?></td>
             <td class="order-actions">
                 <div class="btn-group btn-group-sm">
-                    <button class="btn btn-primary edit-order" 
+                    <button class="btn btn-primary edit-order"
                             data-order-id="<?= $order['id'] ?>"
                             title="Edit Order">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    <button class="btn btn-danger delete-order" 
-                            data-order-id="<?= $order['id'] ?>"
-                            title="Delete Order">
-                        <i class="bi bi-trash"></i>
-                    </button>
+                    <form method="POST" action="admin.php" style="display: inline;"
+                          onsubmit="return confirm('Are you sure you want to delete this order?');">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+                        <input type="hidden" name="action" value="delete_order">
+                        <input type="hidden" name="order_id" value="<?= $order['id'] ?>">
+                        <button type="submit" class="btn btn-danger btn-sm" title="Delete Order">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
                 </div>
             </td>
         </tr>
@@ -185,16 +197,20 @@ function renderUsersTable($users) {
             <td class="user-created"><?= $createdAt ?></td>
             <td class="user-actions">
                 <div class="btn-group btn-group-sm">
-                    <button class="btn btn-primary edit-user" 
+                    <button class="btn btn-primary edit-user"
                             data-user-id="<?= $user['id'] ?>"
                             title="Edit User">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    <button class="btn btn-danger delete-user" 
-                            data-user-id="<?= $user['id'] ?>"
-                            title="Delete User">
-                        <i class="bi bi-trash"></i>
-                    </button>
+                    <form method="POST" action="admin.php" style="display: inline;"
+                          onsubmit="return confirm('Are you sure you want to delete this user?');">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+                        <input type="hidden" name="action" value="delete_user">
+                        <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
+                        <button type="submit" class="btn btn-danger btn-sm" title="Delete User">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
                 </div>
             </td>
         </tr>

@@ -81,12 +81,12 @@ function handleImageUpload($file, $folder = 'products') {
     }
 }
 
-// Handle AJAX requests
+// Handle server-side POST form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    header('Content-Type: application/json');
-    
     if (!$auth->validateCSRFToken($_POST['csrf_token'] ?? '')) {
-        echo json_encode(['success' => false, 'message' => 'Invalid CSRF token']);
+        $_SESSION['flash_message'] = 'Invalid CSRF token';
+        $_SESSION['flash_type'] = 'danger';
+        header('Location: admin.php');
         exit();
     }
     
@@ -98,11 +98,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             if (isset($_POST['category_id']) && !empty($_POST['category_id'])) {
                 $categoryExists = $categoryModel->find($_POST['category_id']);
                 if (!$categoryExists) {
-                    echo json_encode(['success' => false, 'message' => 'Selected category does not exist']);
+                    $_SESSION['flash_message'] = 'Selected category does not exist';
+                    $_SESSION['flash_type'] = 'danger';
+                    header('Location: admin.php#products');
                     exit();
                 }
             } else {
-                // If no category_id provided, set to null
                 $_POST['category_id'] = null;
             }
             
@@ -125,14 +126,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             
             try {
                 $result = $productModel->createProduct($_POST);
-                echo json_encode($result);
+                if ($result['success'] ?? false) {
+                    $_SESSION['flash_message'] = 'Product created successfully';
+                    $_SESSION['flash_type'] = 'success';
+                } else {
+                    $_SESSION['flash_message'] = 'Failed to create product';
+                    $_SESSION['flash_type'] = 'danger';
+                }
             } catch (PDOException $e) {
                 if ($e->getCode() == '23000') {
-                    echo json_encode(['success' => false, 'message' => 'Invalid category selected or constraint violation']);
+                    $_SESSION['flash_message'] = 'Invalid category selected or constraint violation';
                 } else {
-                    echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+                    $_SESSION['flash_message'] = 'Database error: ' . $e->getMessage();
                 }
+                $_SESSION['flash_type'] = 'danger';
             }
+            header('Location: admin.php#products');
             exit();
             
         case 'update_product':
@@ -142,11 +151,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             if (isset($_POST['category_id']) && !empty($_POST['category_id'])) {
                 $categoryExists = $categoryModel->find($_POST['category_id']);
                 if (!$categoryExists) {
-                    echo json_encode(['success' => false, 'message' => 'Selected category does not exist']);
+                    $_SESSION['flash_message'] = 'Selected category does not exist';
+                    $_SESSION['flash_type'] = 'danger';
+                    header('Location: admin.php#products');
                     exit();
                 }
             } else {
-                // If no category_id provided, set to null
                 $_POST['category_id'] = null;
             }
             
@@ -168,44 +178,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             
             try {
                 $result = $productModel->update($productId, $_POST);
-                echo json_encode(['success' => $result, 'message' => $result ? 'Product updated successfully' : 'Failed to update product']);
+                if ($result) {
+                    $_SESSION['flash_message'] = 'Product updated successfully';
+                    $_SESSION['flash_type'] = 'success';
+                } else {
+                    $_SESSION['flash_message'] = 'Failed to update product';
+                    $_SESSION['flash_type'] = 'danger';
+                }
             } catch (PDOException $e) {
                 if ($e->getCode() == '23000') {
-                    echo json_encode(['success' => false, 'message' => 'Invalid category selected or constraint violation']);
+                    $_SESSION['flash_message'] = 'Invalid category selected or constraint violation';
                 } else {
-                    echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+                    $_SESSION['flash_message'] = 'Database error: ' . $e->getMessage();
                 }
+                $_SESSION['flash_type'] = 'danger';
             }
+            header('Location: admin.php#products');
             exit();
             
         case 'delete_product':
             $productId = (int)$_POST['product_id'];
             try {
                 $result = $productModel->delete($productId);
-                echo json_encode(['success' => $result, 'message' => $result ? 'Product deleted successfully' : 'Failed to delete product']);
+                if ($result) {
+                    $_SESSION['flash_message'] = 'Product deleted successfully';
+                    $_SESSION['flash_type'] = 'success';
+                } else {
+                    $_SESSION['flash_message'] = 'Failed to delete product';
+                    $_SESSION['flash_type'] = 'danger';
+                }
             } catch (PDOException $e) {
                 if ($e->getCode() == '23000') {
-                    echo json_encode(['success' => false, 'message' => 'Cannot delete product: it is referenced by existing orders']);
+                    $_SESSION['flash_message'] = 'Cannot delete product: it is referenced by existing orders';
                 } else {
-                    echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+                    $_SESSION['flash_message'] = 'Database error: ' . $e->getMessage();
                 }
+                $_SESSION['flash_type'] = 'danger';
             }
+            header('Location: admin.php#products');
             exit();
             
         case 'create_category':
-            // Remove non-database fields
             unset($_POST['action'], $_POST['csrf_token'], $_POST['category_id']);
             $result = $categoryModel->createCategory($_POST);
-            echo json_encode($result);
+            if ($result['success'] ?? false) {
+                $_SESSION['flash_message'] = 'Category created successfully';
+                $_SESSION['flash_type'] = 'success';
+            } else {
+                $_SESSION['flash_message'] = 'Failed to create category';
+                $_SESSION['flash_type'] = 'danger';
+            }
+            header('Location: admin.php#categories');
             exit();
             
         case 'update_order_status':
         case 'update_order':
             $orderId = (int)$_POST['order_id'];
             
-            // Handle both old update_order_status and new update_order actions
             if (isset($_POST['status']) && isset($_POST['notes'])) {
-                // This is an order status update
                 $status = $_POST['status'];
                 $notes = $_POST['notes'] ?? '';
                 $result = $orderModel->update($orderId, [
@@ -213,34 +243,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     'notes' => $notes
                 ]);
             } else {
-                // Generic order update
                 unset($_POST['action'], $_POST['csrf_token'], $_POST['order_id']);
                 $result = $orderModel->update($orderId, $_POST);
             }
             
-            echo json_encode([
-                'success' => $result, 
-                'message' => $result ? 'Order updated successfully' : 'Failed to update order'
-            ]);
+            if ($result) {
+                $_SESSION['flash_message'] = 'Order updated successfully';
+                $_SESSION['flash_type'] = 'success';
+            } else {
+                $_SESSION['flash_message'] = 'Failed to update order';
+                $_SESSION['flash_type'] = 'danger';
+            }
+            header('Location: admin.php#orders');
             exit();
 
         case 'update_category':
             $categoryId = (int)$_POST['category_id'];
             unset($_POST['action'], $_POST['csrf_token'], $_POST['category_id']);
             $result = $categoryModel->update($categoryId, $_POST);
-            echo json_encode(['success' => $result, 'message' => $result ? 'Category updated successfully' : 'Failed to update category']);
+            if ($result) {
+                $_SESSION['flash_message'] = 'Category updated successfully';
+                $_SESSION['flash_type'] = 'success';
+            } else {
+                $_SESSION['flash_message'] = 'Failed to update category';
+                $_SESSION['flash_type'] = 'danger';
+            }
+            header('Location: admin.php#categories');
             exit();
 
         case 'delete_category':
             $categoryId = (int)$_POST['category_id'];
             $result = $categoryModel->delete($categoryId);
-            echo json_encode(['success' => $result, 'message' => $result ? 'Category deleted' : 'Failed to delete category']);
+            if ($result) {
+                $_SESSION['flash_message'] = 'Category deleted successfully';
+                $_SESSION['flash_type'] = 'success';
+            } else {
+                $_SESSION['flash_message'] = 'Failed to delete category';
+                $_SESSION['flash_type'] = 'danger';
+            }
+            header('Location: admin.php#categories');
             exit();
 
         case 'delete_order':
             $orderId = (int)$_POST['order_id'];
             $result = $orderModel->delete($orderId);
-            echo json_encode(['success' => $result, 'message' => $result ? 'Order deleted' : 'Failed to delete order']);
+            if ($result) {
+                $_SESSION['flash_message'] = 'Order deleted successfully';
+                $_SESSION['flash_type'] = 'success';
+            } else {
+                $_SESSION['flash_message'] = 'Failed to delete order';
+                $_SESSION['flash_type'] = 'danger';
+            }
+            header('Location: admin.php#orders');
             exit();
 
         case 'create_user':
@@ -262,12 +316,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             unset($_POST['action'], $_POST['csrf_token'], $_POST['user_id']);
             $result = $userModel->create($_POST);
             
-            // Ensure proper response format
             if (is_numeric($result) && $result > 0) {
-                echo json_encode(['success' => true, 'message' => 'User created successfully', 'user_id' => $result]);
+                $_SESSION['flash_message'] = 'User created successfully';
+                $_SESSION['flash_type'] = 'success';
             } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to create user']);
+                $_SESSION['flash_message'] = 'Failed to create user';
+                $_SESSION['flash_type'] = 'danger';
             }
+            header('Location: admin.php#users');
             exit();
 
         case 'update_user':
@@ -286,19 +342,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $_POST['password_hash'] = password_hash($_POST['password'], PASSWORD_DEFAULT);
                 unset($_POST['password']);
             } else {
-                // Remove empty password field to avoid updating with empty value
                 unset($_POST['password']);
             }
             
             unset($_POST['action'], $_POST['csrf_token'], $_POST['user_id']);
             $result = $userModel->update($userId, $_POST);
-            echo json_encode(['success' => $result, 'message' => $result ? 'User updated successfully' : 'Failed to update user']);
+            if ($result) {
+                $_SESSION['flash_message'] = 'User updated successfully';
+                $_SESSION['flash_type'] = 'success';
+            } else {
+                $_SESSION['flash_message'] = 'Failed to update user';
+                $_SESSION['flash_type'] = 'danger';
+            }
+            header('Location: admin.php#users');
             exit();
 
         case 'delete_user':
             $userId = (int)$_POST['user_id'];
             $result = $userModel->delete($userId);
-            echo json_encode(['success' => $result, 'message' => $result ? 'User deleted' : 'Failed to delete user']);
+            if ($result) {
+                $_SESSION['flash_message'] = 'User deleted successfully';
+                $_SESSION['flash_type'] = 'success';
+            } else {
+                $_SESSION['flash_message'] = 'Failed to delete user';
+                $_SESSION['flash_type'] = 'danger';
+            }
+            header('Location: admin.php#users');
             exit();
     }
 }
@@ -334,6 +403,17 @@ include 'partials/html-head.php';
 
   <main class="admin-main">
     <div class="container-fluid py-4">
+      
+      <?php if (isset($_SESSION['flash_message'])): ?>
+        <div class="alert alert-<?php echo htmlspecialchars($_SESSION['flash_type'] ?? 'info'); ?> alert-dismissible fade show" role="alert">
+          <?php 
+            echo htmlspecialchars($_SESSION['flash_message']); 
+            unset($_SESSION['flash_message'], $_SESSION['flash_type']);
+          ?>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      <?php endif; ?>
+      
       <!-- Admin Header with Navigation -->
       <div class="admin-header mb-4">
         <div class="row align-items-center mb-3">
@@ -617,9 +697,9 @@ include 'partials/html-head.php';
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <form id="productForm" enctype="multipart/form-data">
+          <form id="productForm" method="POST" action="admin.php" enctype="multipart/form-data">
             <input type="hidden" name="csrf_token" value="<?php echo $auth->generateCSRFToken(); ?>">
-            <input type="hidden" name="action" value="create_product">
+            <input type="hidden" name="action" value="create_product" id="productAction">
             <input type="hidden" name="product_id" id="productId">
             
             <div class="row">
@@ -693,12 +773,12 @@ include 'partials/html-head.php';
                 </div>
               </div>
             </div>
-          </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" onclick="window.Admin.saveProduct()">Save Product</button>
+          <button type="submit" class="btn btn-primary">Save Product</button>
         </div>
+          </form>
       </div>
     </div>
   </div>
@@ -712,9 +792,9 @@ include 'partials/html-head.php';
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <form id="categoryForm">
+          <form id="categoryForm" method="POST" action="admin.php">
             <input type="hidden" name="csrf_token" value="<?php echo $auth->generateCSRFToken(); ?>">
-            <input type="hidden" name="action" value="create_category">
+            <input type="hidden" name="action" value="create_category" id="categoryAction">
             <input type="hidden" name="category_id" id="categoryId">
             
             <div class="mb-3">
@@ -731,12 +811,12 @@ include 'partials/html-head.php';
               <input class="form-check-input" type="checkbox" id="categoryActive" name="is_active" value="1" checked>
               <label class="form-check-label" for="categoryActive">Active</label>
             </div>
-          </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" onclick="window.Admin.saveCategory()">Save Category</button>
+          <button type="submit" class="btn btn-primary">Save Category</button>
         </div>
+          </form>
       </div>
     </div>
   </div>
@@ -750,9 +830,9 @@ include 'partials/html-head.php';
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <form id="userForm">
+          <form id="userForm" method="POST" action="admin.php">
             <input type="hidden" name="csrf_token" value="<?php echo $auth->generateCSRFToken(); ?>">
-            <input type="hidden" name="action" value="create_user">
+            <input type="hidden" name="action" value="create_user" id="userAction">
             <input type="hidden" name="user_id" id="userId">
             
             <div class="row">
@@ -802,12 +882,12 @@ include 'partials/html-head.php';
                 </div>
               </div>
             </div>
-          </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" onclick="window.Admin.saveUser()">Save User</button>
+          <button type="submit" class="btn btn-primary">Save User</button>
         </div>
+          </form>
       </div>
     </div>
   </div>
@@ -821,9 +901,9 @@ include 'partials/html-head.php';
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <form id="orderForm">
+          <form id="orderForm" method="POST" action="admin.php">
             <input type="hidden" name="csrf_token" value="<?php echo $auth->generateCSRFToken(); ?>">
-            <input type="hidden" name="action" value="update_order_status">
+            <input type="hidden" name="action" value="update_order_status" id="orderAction">
             <input type="hidden" name="order_id" id="orderId">
             
             <div class="mb-3">
@@ -841,12 +921,12 @@ include 'partials/html-head.php';
               <label for="orderNotes" class="form-label">Admin Notes</label>
               <textarea class="form-control" id="orderNotes" name="notes" rows="3" placeholder="Optional notes for this order..."></textarea>
             </div>
-          </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" onclick="window.Admin.saveOrder()">Update Order</button>
+          <button type="submit" class="btn btn-primary">Update Order</button>
         </div>
+          </form>
       </div>
     </div>
   </div>

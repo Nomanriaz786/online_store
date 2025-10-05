@@ -127,29 +127,40 @@ include 'partials/html-head.php';
                        loading="lazy">
                   <div class="card-body d-flex flex-column">
                     <h3 class="h6 card-title"><?php echo htmlspecialchars($product['name']); ?></h3>
-                    <p class="card-text text-muted small flex-grow-1"><?php echo htmlspecialchars($product['category_name'] ?? 'Uncategorized'); ?></p>
+                    <p class="card-text text-muted small">
+                      <span class="badge bg-secondary"><?php echo htmlspecialchars($product['category_name'] ?? 'Uncategorized'); ?></span>
+                    </p>
                     <?php if (!empty($product['description'])): ?>
-                      <p class="card-text text-muted small">
+                      <p class="card-text text-muted small flex-grow-1">
                         <?php echo htmlspecialchars(substr($product['description'], 0, 80)); ?>
                         <?php if (strlen($product['description']) > 80): ?>...<?php endif; ?>
                       </p>
                     <?php endif; ?>
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                      <span class="fw-bold fs-5 text-gradient" data-price="<?php echo $product['price']; ?>">
-                        $<?php echo number_format($product['price'], 2); ?>
-                      </span>
-                      <?php if ($product['stock_quantity'] > 0): ?>
-                        <button class="btn btn-primary btn-sm add-to-cart-btn" 
-                                data-product-id="<?php echo $product['id']; ?>"
-                                data-product-name="<?php echo htmlspecialchars($product['name']); ?>"
-                                data-product-price="<?php echo $product['price']; ?>">
-                          Add to Cart
-                        </button>
-                      <?php else: ?>
-                        <button class="btn btn-outline-secondary btn-sm" disabled>
-                          Out of Stock
-                        </button>
-                      <?php endif; ?>
+                    <div class="mt-auto">
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="h5 text-primary mb-0 fw-bold">
+                          $<?php echo number_format($product['price'], 2); ?>
+                        </span>
+                      </div>
+                      <div class="d-grid gap-2">
+                        <a href="product.php?id=<?php echo $product['id']; ?>" class="btn btn-outline-primary btn-sm">
+                          <i class="bi bi-eye me-1"></i>View Details
+                        </a>
+                        <?php if ($product['stock_quantity'] > 0): ?>
+                          <form method="POST" action="cart.php">
+                            <input type="hidden" name="action" value="add_to_cart">
+                            <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
+                            <input type="hidden" name="csrf_token" value="<?php echo $auth->generateCSRFToken(); ?>">
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                              <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                            </button>
+                          </form>
+                        <?php else: ?>
+                          <button class="btn btn-outline-secondary btn-sm w-100" disabled>
+                            <i class="bi bi-x-circle me-1"></i>Out of Stock
+                          </button>
+                        <?php endif; ?>
+                      </div>
                     </div>
                   </div>
                 </article>

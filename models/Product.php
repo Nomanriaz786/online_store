@@ -250,4 +250,21 @@ class Product extends BaseModel
         $stmt = $this->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    
+    /**
+     * Get products by category
+     */
+    public function getProductsByCategory($categoryId, $limit = 4)
+    {
+        $sql = "SELECT p.*, c.name as category_name,
+                COALESCE(p.image_path, 'assets/img/placeholder.svg') as image_path
+                FROM products p
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.category_id = ? AND p.is_active = 1
+                ORDER BY p.created_at DESC
+                LIMIT ?";
+        
+        $stmt = $this->query($sql, [$categoryId, $limit]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

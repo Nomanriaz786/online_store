@@ -8,87 +8,93 @@ $auth = new Auth();
 $cartModel = new Cart();
 $productModel = new Product();
 
-// Handle AJAX requests
+// Handle POST requests for cart operations
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    header('Content-Type: application/json');
-    
     if (!$auth->validateCSRFToken($_POST['csrf_token'] ?? '')) {
-        echo json_encode(['success' => false, 'message' => 'Invalid CSRF token']);
+        $_SESSION['error_message'] = 'Invalid security token. Please try again.';
+        header('Location: cart.php');
         exit();
     }
-    
+
+    if (!$auth->isAuthenticated()) {
+        $_SESSION['error_message'] = 'Please login to manage your cart.';
+        header('Location: login.php?redirect=cart.php');
+        exit();
+    }
+
     $action = $_POST['action'];
-    $userId = $_SESSION['user_id'] ?? null;
-    
+    $userId = $_SESSION['user_id'];
+
     switch ($action) {
         case 'add_to_cart':
-            if (!$userId) {
-                echo json_encode(['success' => false, 'message' => 'Please login to add items to cart']);
-                exit();
-            }
-            
             $productId = (int)$_POST['product_id'];
             $quantity = (int)($_POST['quantity'] ?? 1);
-            
+
             // Verify product exists and is active
             $product = $productModel->find($productId);
             if (!$product || !$product['is_active']) {
-                echo json_encode(['success' => false, 'message' => 'Product not available']);
+                $_SESSION['error_message'] = 'Product not available.';
+                header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? 'products.php'));
                 exit();
             }
-            
+
             // Check stock
             if ($product['stock_quantity'] < $quantity) {
-                echo json_encode(['success' => false, 'message' => 'Insufficient stock']);
+                $_SESSION['error_message'] = 'Insufficient stock available.';
+                header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? 'products.php'));
                 exit();
             }
-            
-            $result = $cartModel->addToCart($userId, $productId, $quantity);
-            echo json_encode($result);
+
+            $result = $cartModel->addItem($userId, $productId, $quantity);
+            if ($result['success']) {
+                $_SESSION['success_message'] = $result['message'] ?? 'Item added to cart successfully.';
+            } else {
+                $_SESSION['error_message'] = $result['message'] ?? 'Failed to add item to cart.';
+            }
+            header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? 'cart.php'));
             exit();
-            
+
         case 'update_quantity':
-            if (!$userId) {
-                echo json_encode(['success' => false, 'message' => 'Please login']);
-                exit();
-            }
-            
             $productId = (int)$_POST['product_id'];
             $quantity = (int)$_POST['quantity'];
-            
+
             if ($quantity <= 0) {
                 $result = $cartModel->removeFromCart($userId, $productId);
+                $message = $result['success'] ? 'Item removed from cart.' : 'Failed to remove item.';
             } else {
                 $result = $cartModel->updateQuantity($userId, $productId, $quantity);
+                $message = $result['success'] ? 'Cart updated successfully.' : 'Failed to update cart.';
             }
-            
-            echo json_encode($result);
+
+            if ($result['success']) {
+                $_SESSION['success_message'] = $message;
+            } else {
+                $_SESSION['error_message'] = $message;
+            }
+            header('Location: cart.php');
             exit();
-            
+
         case 'remove_item':
-            if (!$userId) {
-                echo json_encode(['success' => false, 'message' => 'Please login']);
-                exit();
-            }
-            
             $productId = (int)$_POST['product_id'];
             $result = $cartModel->removeFromCart($userId, $productId);
-            echo json_encode($result);
-            exit();
-            
-        case 'clear_cart':
-            if (!$userId) {
-                echo json_encode(['success' => false, 'message' => 'Please login']);
-                exit();
+
+            if ($result['success']) {
+                $_SESSION['success_message'] = 'Item removed from cart.';
+            } else {
+                $_SESSION['error_message'] = 'Failed to remove item from cart.';
             }
-            
-            $result = $cartModel->clearCart($userId);
-            echo json_encode($result);
+            header('Location: cart.php');
             exit();
-            
-        case 'get_cart_count':
-            $count = $userId ? $cartModel->getCartItemCount($userId) : 0;
-            echo json_encode(['success' => true, 'count' => $count]);
+
+        case 'clear_cart':
+            $result = $cartModel->clearCart($userId);
+
+            if ($result['success']) {
+                $_SESSION['success_message'] = 'Cart cleared successfully.';
+            } else {
+                $_SESSION['error_message'] = 'Failed to clear cart.';
+            }
+            header('Location: cart.php');
             exit();
     }
 }
@@ -126,10 +132,10 @@ include 'partials/html-head.php';
                 <h3 class="mb-3">Please Login to View Cart</h3>
                 <p class="text-muted mb-4">You need to be logged in to manage your shopping cart.</p>
                 <div class="d-flex gap-3 justify-content-center">
-                  <a href="login.html" class="btn btn-primary">
+                  <a href="login.php" class="btn btn-primary">
                     <i class="bi bi-box-arrow-in-right me-2"></i>Login
                   </a>
-                  <a href="register.html" class="btn btn-outline-primary">
+                  <a href="register.php" class="btn btn-outline-primary">
                     <i class="bi bi-person-plus me-2"></i>Register
                   </a>
                 </div>
@@ -163,9 +169,13 @@ include 'partials/html-head.php';
               <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                   <h4 class="mb-0">Shopping Cart (<?php echo $cartCount; ?> items)</h4>
-                  <button class="btn btn-outline-danger btn-sm" onclick="Cart.clearEntireCart()">
-                    <i class="bi bi-trash me-1"></i>Clear Cart
-                  </button>
+                  <form method="POST" action="cart.php" class="d-inline">
+                    <input type="hidden" name="action" value="clear_cart">
+                    <input type="hidden" name="csrf_token" value="<?php echo $auth->generateCSRFToken(); ?>">
+                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to clear your entire cart?')">
+                      <i class="bi bi-trash me-1"></i>Clear Cart
+                    </button>
+                  </form>
                 </div>
               </div>
               <div class="card-body p-0">
@@ -206,22 +216,22 @@ include 'partials/html-head.php';
                             <strong>$<?php echo number_format($item['price'], 2); ?></strong>
                           </td>
                           <td class="align-middle">
-                            <div class="input-group cart-qty-group">
-                              <button class="btn btn-outline-secondary btn-sm" type="button" 
-                                      onclick="Cart.updateCartQuantity(<?php echo $item['product_id']; ?>, <?php echo $item['quantity'] - 1; ?>)">
-                                <i class="bi bi-dash"></i>
-                              </button>
-                              <input type="number" class="form-control form-control-sm text-center cart-qty-input" 
-                                     value="<?php echo htmlspecialchars($item['quantity'] ?? '1'); ?>" min="1" max="<?php echo htmlspecialchars($item['stock_quantity'] ?? '99'); ?>"
-                                     id="qty-<?php echo $item['product_id']; ?>"
-                                     onchange="Cart.updateCartQuantity(<?php echo $item['product_id']; ?>, this.value)">
-                              <button class="btn btn-outline-secondary btn-sm" type="button" 
-                                      onclick="Cart.updateCartQuantity(<?php echo $item['product_id']; ?>, <?php echo $item['quantity'] + 1; ?>)">
-                                <i class="bi bi-plus"></i>
-                              </button>
-                            </div>
-                            <?php if ($item['stock_quantity'] < 10): ?>
-                              <small class="text-warning d-block mt-1">Only <?php echo $item['stock_quantity']; ?> left</small>
+                            <form method="POST" action="cart.php" class="d-inline">
+                              <input type="hidden" name="action" value="update_quantity">
+                              <input type="hidden" name="product_id" value="<?php echo $item['product_id']; ?>">
+                              <input type="hidden" name="csrf_token" value="<?php echo $auth->generateCSRFToken(); ?>">
+                              <div class="input-group input-group-sm" style="width: 120px;">
+                                <button class="btn btn-outline-secondary" type="submit" name="quantity" value="<?php echo $item['quantity'] - 1; ?>" <?php echo $item['quantity'] <= 1 ? 'disabled' : ''; ?>>
+                                  <i class="bi bi-dash"></i>
+                                </button>
+                                <input type="number" class="form-control text-center" name="quantity" value="<?php echo $item['quantity']; ?>" min="1" max="<?php echo $item['stock_quantity'] ?? 99; ?>" onchange="this.form.submit()">
+                                <button class="btn btn-outline-secondary" type="submit" name="quantity" value="<?php echo $item['quantity'] + 1; ?>" <?php echo ($item['stock_quantity'] ?? 99) <= $item['quantity'] ? 'disabled' : ''; ?>>
+                                  <i class="bi bi-plus"></i>
+                                </button>
+                              </div>
+                            </form>
+                            <?php if (($item['stock_quantity'] ?? 0) < 10): ?>
+                              <small class="text-warning d-block mt-1">Only <?php echo $item['stock_quantity'] ?? 0; ?> left</small>
                             <?php endif; ?>
                           </td>
                           <td class="align-middle">
@@ -230,11 +240,14 @@ include 'partials/html-head.php';
                             </strong>
                           </td>
                           <td class="align-middle">
-                            <button class="btn btn-outline-danger btn-sm" 
-                                    onclick="Cart.removeCartItem(<?php echo $item['product_id']; ?>)"
-                                    title="Remove item">
-                              <i class="bi bi-trash"></i>
-                            </button>
+                            <form method="POST" action="cart.php" class="d-inline">
+                              <input type="hidden" name="action" value="remove_item">
+                              <input type="hidden" name="product_id" value="<?php echo $item['product_id']; ?>">
+                              <input type="hidden" name="csrf_token" value="<?php echo $auth->generateCSRFToken(); ?>">
+                              <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to remove this item from your cart?')" title="Remove item">
+                                <i class="bi bi-trash"></i>
+                              </button>
+                            </form>
                           </td>
                         </tr>
                       <?php endforeach; ?>
@@ -281,9 +294,6 @@ include 'partials/html-head.php';
                   <a href="checkout.php" class="btn btn-primary btn-lg">
                     <i class="bi bi-credit-card me-2"></i>Proceed to Checkout
                   </a>
-                  <button class="btn btn-outline-secondary" onclick="Cart.saveForLater()">
-                    <i class="bi bi-bookmark me-2"></i>Save for Later
-                  </button>
                 </div>
               </div>
             </div>
