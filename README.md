@@ -2,37 +2,37 @@
 
 A comprehensive e-commerce platform built with PHP, MySQL, and modern web technologies. This project demonstrates advanced web development practices including secure user authentication, dynamic product management, shopping cart functionality, and responsive design.
 
-## ✨ Features
+## Features
 
 ### User Management
-- 🔐 Secure user registration and login
-- 👤 User profile management with photo upload
-- 🔒 Password change functionality
-- 📱 Responsive user dashboard
-- 🛡️ Session-based authentication
+- Secure user registration and login
+- User profile management with photo upload
+- Password change functionality
+- Responsive user dashboard
+- Session-based authentication
 
 ### E-commerce Functionality
-- 🛍️ Dynamic product catalog
-- 🔍 Advanced search and filtering
-- 🛒 Shopping cart with persistence
-- 💳 Checkout process with order management
-- 📦 Order history and tracking
+- Dynamic product catalog
+- Advanced search and filtering
+- Shopping cart with persistence
+- Checkout process with order management
+- Order history and tracking
 
 ### Admin Panel
-- 📊 Comprehensive admin dashboard
-- ➕ Product CRUD operations
-- 🖼️ Image upload and management
-- 👥 User management
-- 📈 Order management and statistics
+- Comprehensive admin dashboard
+- Product CRUD operations
+- Image upload and management
+- User management
+- Order management and statistics
 
 ### Design & UX
-- 🎨 Modern responsive design
-- 🌙 Dark/Light theme toggle
-- 📱 Mobile-first approach
-- ♿ Accessibility compliant
-- 🚀 Fast loading and optimized
+- Modern responsive design
+- Dark/Light theme toggle
+- Mobile-first approach
+- Accessibility compliant
+- Fast loading and optimized
 
-## 🔧 Prerequisites
+## Prerequisites
 
 Before setting up this project, ensure you have the following installed:
 
@@ -41,14 +41,7 @@ Before setting up this project, ensure you have the following installed:
 - **Web Browser** (Chrome, Firefox, Safari, or Edge)
 - **Text Editor** (VS Code, Sublime Text, or similar)
 
-### System Requirements
-- **Operating System**: Windows, macOS, or Linux
-- **RAM**: Minimum 4GB (8GB recommended)
-- **Storage**: At least 2GB free space
-- **PHP Version**: 8.0 or higher
-- **MySQL Version**: 5.7 or higher
-
-## 🚀 Installation Guide
+## Installation Guide
 
 ### Step 1: Install XAMPP
 
@@ -85,7 +78,6 @@ Before setting up this project, ensure you have the following installed:
        ├── index.php
        ├── config/
        ├── models/
-       ├── api/
        └── ... (other project files)
    ```
 
@@ -103,7 +95,7 @@ Before setting up this project, ensure you have the following installed:
    You should see the project homepage
    ```
 
-## 🗄️ Database Setup
+## Database Setup
 
 ### Method 1: Automatic Setup (Recommended)
 
@@ -141,7 +133,7 @@ Before setting up this project, ensure you have the following installed:
    - Use the setup_database.php script or
    - Manually run the SQL commands from config/database.php
 
-## ⚙️ Configuration
+## Configuration
 
 ### 1. Database Configuration
 
@@ -159,7 +151,7 @@ const DB_CHARSET = 'utf8mb4';
 const BASE_URL = 'http://localhost/online_store/';
 ```
 
-## 🏃‍♂️ Running the Application
+## Running the Application
 
 ### 1. Start Services
 ```bash
@@ -181,7 +173,7 @@ API Base: http://localhost/online_store/api/
 4. **Admin Panel**: Login with admin credentials
 5. **Shopping**: Add products to cart and test checkout
 
-## 👨‍💼 Admin Access
+## Admin Access
 
 ### Default Admin Credentials
 ```
@@ -198,9 +190,9 @@ Email: admin@mystore.com
 - **Image Upload**: Manage product images
 
 ### Security Note
-**⚠️ IMPORTANT**: Change the default admin password immediately after setup!
+**IMPORTANT**: Change the default admin password immediately after setup!
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 online_store/
@@ -213,13 +205,6 @@ online_store/
 ├── 📄 checkout.php           # Checkout process
 ├── 📄 profile.php            # User profile
 ├── 📄 setup_database.php     # Database setup script
-│
-├── 📂 api/                   # REST API endpoints
-│   ├── 📂 auth/              # Authentication
-│   ├── 📂 products/          # Product operations
-│   ├── 📂 cart/              # Cart operations
-│   ├── 📂 orders/            # Order management
-│   └── 📂 users/             # User operations
 │
 ├── 📂 assets/                # Static assets
 │   ├── 📂 css/               # Stylesheets
@@ -251,45 +236,7 @@ online_store/
     └── 📂 users/             # User profile pictures
 ```
 
-## 🔌 API Endpoints
-
-### Authentication
-```
-POST /api/auth/login.php       # User login
-POST /api/auth/logout.php      # User logout
-```
-
-### Products
-```
-GET  /api/products/get.php     # Get all products
-GET  /api/products/get.php?id=1 # Get single product
-POST /api/products/get.php     # Create product (admin)
-PUT  /api/products/get.php     # Update product (admin)
-DELETE /api/products/get.php   # Delete product (admin)
-```
-
-### Cart
-```
-GET  /api/cart/get.php         # Get cart items
-POST /api/cart/add.php         # Add to cart
-POST /api/cart/save.php        # Update cart
-```
-
-### Orders
-```
-GET  /api/orders/get.php       # Get user orders
-POST /api/checkout/process.php # Process checkout
-```
-
-### Users
-```
-GET  /api/users/profile.php    # Get user profile
-POST /api/users/profile.php    # Update profile
-POST /api/users/change-password.php # Change password
-POST /api/users/upload-profile-picture.php # Upload avatar
-```
-
-## 🛡️ Security Features
+## Security Features
 
 ### Authentication & Authorization
 - Secure password hashing (PHP password_hash())
